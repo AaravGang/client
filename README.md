@@ -19,7 +19,9 @@ python3.8 -m pip install -r requirements.txt
 ## Play the game
 
 ### Run the `client.py` file by:
-```python3.8 client.py```
+```
+python3.8 client.py
+```
 
 The client will ask for the server's details, paste them in, and you'll be good to go!
  
