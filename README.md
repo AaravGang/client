@@ -5,7 +5,7 @@ Online Tic Tac Toe and Connect4.
 ## Setup
 If you dont have python3.8 installed, then go to https://www.python.org/downloads/ and install `python3.8.1`
 
-Once you have that, download this client folder's zip on your `Desktop` and unzip it.
+Once you have that, download this client folder's zip on your `Desktop` and unzip it. (It will prolly be named `client-main`, rename it to `client`)
 
 Next, Open a new terminal or command prompt, and paste in the following commands:
 ```
