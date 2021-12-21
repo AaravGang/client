@@ -278,7 +278,7 @@ def send_image(img):
 
 # what happens when the user changes profile pic
 def on_image_change(path, *args, **kwargs):
-    img_w, img_h = 512, 512
+    img_w, img_h = 100, 100
     try:
         with open(path) as f:
             img = pygame.image.load(f)
