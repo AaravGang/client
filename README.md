@@ -1,9 +1,21 @@
-# Online Tic Tac Toe
+# Online Games (better title soon)
 
-Online Tic Tac Toe game that you can play with people in your LAN.
+Online Tic Tac Toe and Connect4.
 
 ## Setup
-Install Dependencies: `python3.8 -m pip install -r requirements.txt`
+If you dont have python3.8 installed, then go to [a link](https://www.python.org/downloads/) and install `python3.8.1`
+
+Once you have that, download this client folder's zip on your `Desktop` and unzip it.
+
+Next, Open a new terminal or command prompt, and paste in the following commands:
+```
+cd Desktop/client
+python3 -m pip install -r requirements.txt
+
+```
+
+👆🏻 This will switch your current directory to the client folder, and install the dependencies required to play the game.
+
 
 ## Usage
 
