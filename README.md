@@ -12,10 +12,15 @@ Next, Open a new terminal or command prompt, and paste in the following commands
 
 ```
 cd Desktop/client
-python3.8 -m pip install -r requirements.txt
 ```
 
-👆🏻 This will switch your current directory to the client folder, and install the dependencies required to play the game.
+👆🏻 This will switch your current directory to the client folder.
+
+```
+python3 -m pip install -r requirements.txt
+```
+
+This will install the dependencies required to play the game. **Use only `python` instead of `python3` on Windows**
 
 ## Play the game
 
