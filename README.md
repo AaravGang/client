@@ -24,7 +24,7 @@ This will install the dependencies required to play the game. **Use only `python
 
 ## Play the game
 
-### Run the `client.py` file by:
+### Run the client.py file by:
 
 ```
 python3 client.py
