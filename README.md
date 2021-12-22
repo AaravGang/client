@@ -30,6 +30,7 @@ This will install the dependencies required to play the game. **Use only `python
 python3 client.py
 ```
 on mac
+
 OR
 ```
 python client.py
