@@ -26,10 +26,14 @@ This will install the dependencies required to play the game. **Use only `python
 
 ### Run the `client.py` file by:
 
-```python3 client.py```
+```
+python3 client.py
+```
 on mac
 OR
-```python client.py```
- on windows
+```
+python client.py
+```
+on windows
 
 The client will ask for the server's details, paste them in (right click), and you'll be good to go!
