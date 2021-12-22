@@ -1,17 +1,16 @@
-import pygame, json, time
+import pygame, json, time, pickle
 from pygame import mixer
 import numpy as np
 from network import Network
 from constants import *
 from utilities import *
 from _thread import start_new_thread
-import json
 
-WINDOW = pygame.display.set_mode((WIDTH, HEIGHT), pygame.SRCALPHA)
+WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 # two parts of the window - left and right
-WINDOW_LEFT = pygame.Surface((LEFT_WIDTH, HEIGHT), pygame.SRCALPHA)
+WINDOW_LEFT = pygame.Surface((LEFT_WIDTH, HEIGHT))
 # right is reserved for messages and errors
-WINDOW_RIGHT = pygame.Surface((RIGHT_WIDTH, HEIGHT), pygame.SRCALPHA)
+WINDOW_RIGHT = pygame.Surface((RIGHT_WIDTH, HEIGHT))
 
 
 clock = pygame.time.Clock()
@@ -67,7 +66,7 @@ def start_up_window():
 
 # connect to the server
 def connect(error=None):
-    WINDOW.fill(0)
+    WINDOW.fill((0, 0, 0))
     pygame.display.update()
     if error:
         write(WINDOW, error, WIDTH / 2, 100, color=Colors.RED)
@@ -76,7 +75,7 @@ def connect(error=None):
 
     ip, port = start_up_window()
     if not str(port).isnumeric():
-        WINDOW.fill(0)
+        WINDOW.fill((0, 0, 0))
         return connect(error="Port must be a valid number.")
     n = Network(ip, int(port))  # initialise a network
     data = n.connect()  # connect to the server
@@ -84,7 +83,7 @@ def connect(error=None):
         curr_user_id = data
         return n, curr_user_id
     else:
-        WINDOW.fill(0)
+        WINDOW.fill((0, 0, 0))
         return connect(
             error="Could not connect. Please check if the IP and Port are correct."
         )
@@ -92,41 +91,49 @@ def connect(error=None):
 
 # recieve the list of active users from the server
 def recieve_active_users():
-    WINDOW.fill(0)
+    WINDOW.fill((0, 0, 0))
     write(WINDOW, f"Recieving other users from server. - {0}%", WIDTH / 2, HEIGHT / 2)
 
-    size = n.recv()["active_users"][
-        "size"
-    ]  # recieve the number of bytes the server is gonna send
-    full_bytes = b""
+    try:
+        data = n.recv()
+        size = data["active_users"][
+            "size"
+        ]  # recieve the number of bytes the server is gonna send
+        full_bytes = b""
 
-    bytes_chunck = ""  # image will come in as bytes
-    server_down = False
-    while len(full_bytes) != size:
-        if len(full_bytes) > size:
-            raise Exception("SOMETHING WENT WRONG!")
+        bytes_chunck = ""  # image will come in as bytes
+        server_down = False
+        while len(full_bytes) != size:
+            if len(full_bytes) > size:
+                raise Exception("SOMETHING WENT WRONG!")
 
-        bytes_chunck = n.recv(2048, False)
-        # user has disconnected
-        if not bytes_chunck:
-            server_down = True
-            break
-        full_bytes += bytes_chunck
+            bytes_chunck = n.recv(2048, False)
+            # user has disconnected
+            if not bytes_chunck:
+                server_down = True
+                break
+            full_bytes += bytes_chunck
 
-        WINDOW.fill(0)
-        write(
-            WINDOW,
-            f"Recieving other users from server. - {round(len(full_bytes)/size * 100)}%",
-            WIDTH / 2,
-            HEIGHT / 2,
-        )
+            WINDOW.fill((0, 0, 0))
+            write(
+                WINDOW,
+                f"Recieving other users from server. - {round(len(full_bytes)/size * 100)}%",
+                WIDTH / 2,
+                HEIGHT / 2,
+            )
 
-    if server_down:
-        raise Exception("SERVER CRASHED UNEXPECTEDLY")
+        if server_down:
+            raise Exception("SERVER CRASHED UNEXPECTEDLY")
 
-    active_users = json.loads(full_bytes.decode("utf-8"))
+        active_users = json.loads(full_bytes.decode("utf-8"))
 
-    return active_users
+        return active_users
+
+    except Exception as e:
+        global run
+        print("COULD NOT GET ACTIVE USRERS FROM SERVER.",e)
+        print("DATA RECIEVED WAS: ",data)
+        run  = False
 
 
 # move b/w pages
@@ -249,8 +256,8 @@ def send_update_details_request(changed, *args, **kwargs):
 
 # send an image in batches
 def send_image(img):
-    WINDOW.fill(0)
-    write(WINDOW, f"Uploading - {0}%", WIDTH / 2, HEIGHT / 2)
+    WINDOW.fill((0, 0, 0))
+    write(WINDOW, f"Uploading Image - {0}%", WIDTH / 2, HEIGHT / 2)
 
     image_bytes = img.tobytes()
     size = len(image_bytes)
@@ -258,38 +265,46 @@ def send_image(img):
     # send the server the size of the image
     send({"image": {"size": size, "shape": img.shape, "dtype": img.dtype}})
 
-    time.sleep(1)
+    allowed = n.recv()
+    if not allowed.get(
+        "image_allowed"
+    ):  # image is prolly too large, and rejected by server
+        popups["error"].add_popup("Error", allowed.get("error"), text_color=Colors.RED)
 
-    # print("started sending image")
-    # send the image bytes
-    for batch in range(0, size, 2048):
-        check_quit()
-        send(image_bytes[batch : batch + 2048], pickle_data=False)
-        WINDOW.fill(0)
-        write(
-            WINDOW,
-            f"Uploading - {round((batch+2048)/size * 100)}%",
-            WIDTH / 2,
-            HEIGHT / 2,
-        )
+    else:
+        time.sleep(1)
 
-    # print("done sending image")
+        # print("started sending image")
+        # send the image bytes
+        for batch in range(0, size, 2048):
+            check_quit()
+            send(image_bytes[batch : batch + 2048], pickle_data=False)
+            WINDOW.fill((0, 0, 0))
+            write(
+                WINDOW,
+                f"Uploading Image - {round((batch+2048)/size * 100)}%",
+                WIDTH / 2,
+                HEIGHT / 2,
+            )
+
+        # print("done sending image")
 
 
 # what happens when the user changes profile pic
 def on_image_change(path, *args, **kwargs):
-    img_w, img_h = 100, 100
+
     try:
         with open(path) as f:
             img = pygame.image.load(f)
             img = pygame.surfarray.array3d(pygame.transform.scale(img, (img_w, img_h),))
+
             send_image(img)
 
     except Exception as e:
         popups["error"].add_popup(
             "Error", str(e), text_color=Colors.RED,
         )
-        if window_settings["sound_effects"]:
+        if saved_settings["sound_effects"]:
             Sound_Effects.error.play()
 
 
@@ -338,10 +353,10 @@ def update_user(id, changed):
     for key in changed:
         if id == curr_user_id:
             curr_user[key] = changed[key]
+           
         active_users[id][key] = changed[key]
 
     user_buttons.update_button(id, changed)
-
     user_profile = user_profiles[id]
     user_profile.update(changed=changed)
 
@@ -515,7 +530,8 @@ def recieve():
         if data.get("updated"):
             update_user(data["updated"]["user_id"], data["updated"]["changed"])
 
-        if window_settings["sound_effects"] and sound_to_play:
+        
+        if saved_settings["sound_effects"] and sound_to_play:
             sound_to_play.play()
 
         sound_to_play = None
@@ -562,10 +578,11 @@ def setup(error=None):
             "COULD NOT CONNECT TO SERVER. PLEASE MAKE SURE YOU ARE CONNECTING TO THE RIGHT IP ADDRESS AND PORT, AND THAT YOU INTERNET IS WORKING."
         )
 
-    WINDOW.fill(0)
+    WINDOW.fill((0, 0, 0))
     pygame.display.update()
 
     active_users = recieve_active_users()  # load all the users
+
     curr_user = active_users[curr_user_id]  # load the current user
     user_buttons = UserButton_Container()  # display user buttons on home page
     user_profiles = {}  # a profile for every active user
@@ -618,10 +635,10 @@ def main():
     # recieve data from the server in a seperate thread
     start_new_thread(recieve, ())
 
-    WINDOW.fill(0)
+    WINDOW.fill((0, 0, 0))
     pygame.display.update()
 
-    if window_settings["play_music"]:
+    if saved_settings["play_music"]:
         mixer.music.play(-1)
 
     while run:

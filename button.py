@@ -64,8 +64,8 @@ class Button(object):
         self.__dict__.update(settings)
 
     def create_tags(self):
-        x, y = self.rect.x + 10, self.rect.y + 5
-        font = pygame.font.SysFont("Arial", 30)
+        x, y = self.rect.x +5, self.rect.y +5
+        font = Fonts.small_font
         for tag in self.tags:
             text_surf = font.render(tag, True, Colors.BLACK)
             rect = text_surf.get_rect(topleft=(x, y))
@@ -78,7 +78,7 @@ class Button(object):
         if self.text:
             if self.disabled:
                 self.rendered_text = self.font.render(
-                    self.text, False, self.disabled_text_color
+                    self.text, True, self.disabled_text_color
                 )
 
             else:
@@ -123,7 +123,7 @@ class Button(object):
             return_val = self.function(
                 button=self, on_close=self.on_popup_close, **kwargs
             )
-            if window_settings["sound_effects"] and self.click_sound:
+            if saved_settings["sound_effects"] and self.click_sound:
                 self.click_sound.play()
         self.clicked = False
         return return_val

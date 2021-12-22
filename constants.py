@@ -7,7 +7,7 @@ pygame.mixer.init()
 
 # window settings
 with open("saved_settings.json", "r") as f:
-    window_settings = json.load(f)
+    saved_settings = json.load(f)
 
 # All colors
 class Colors:
@@ -49,6 +49,8 @@ class Sound_Effects:
     close = cancel
     game_start = mixer.Sound(f"{default_sounds_path}/game_start.wav")
     open = mixer.Sound(f"{default_sounds_path}/open_menu.ogg")
+    celebration = mixer.Sound(f"{default_sounds_path}/celebration.wav")
+    mourn = mixer.Sound(f"{default_sounds_path}/mourn.wav")
 
 
 # load images
@@ -74,37 +76,27 @@ LEFT_WIDTH = 800 - GAP_BETWEEN_SECTIONS
 RIGHT_WIDTH = 400
 WIDTH = LEFT_WIDTH + RIGHT_WIDTH + GAP_BETWEEN_SECTIONS
 
+# profile pic image dimensions
+img_w, img_h = 256, 256
+
 
 # What all buttons will be displayed on the profile
 profile_buttons = ["tic_tac_toe", "connect4"]
 
+
 # All the fonts
 class Fonts:
-    user_font = pygame.font.SysFont(
-        "chalkdusterttf" if "chalkdusterttf" in pygame.font.get_fonts() else "Arial",
-        50,
-    )
+    default_font_path = "static/fonts"
+    user_font = pygame.font.Font(f"{default_font_path}/Chalkduster.ttf", 50,)
 
-    close_button_font = pygame.font.SysFont("Arial", 50,)
-    close_button_font.set_bold(True)
+    close_button_font = pygame.font.Font(f"{default_font_path}/Arial.ttf", 50,)
+    # close_button_font.set_bold(True)
 
-    challenge_button_font = pygame.font.SysFont(
-        "markerfeltttc" if "markerfeltttc" in pygame.font.get_fonts() else "Arial", 30
-    )
-    title_font = pygame.font.SysFont(
-        "comicsansmsboldttf"
-        if "comicsansmsboldttf" in pygame.font.get_fonts()
-        else "Arial",
-        30,
-    )
-    subtitle_font = pygame.font.SysFont(
-        "timesnewromanboldttf"
-        if "timesnewromanboldttf" in pygame.font.get_fonts()
-        else "Arial",
-        25,
-    )
-    notification_font = challenge_button_font
-    small_font = pygame.font.SysFont("Arial", 20)
+    challenge_button_font = pygame.font.Font(f"{default_font_path}/MarkerFelt.ttc", 30)
+    title_font = pygame.font.Font(f"{default_font_path}/ComicSansMSBold.ttf", 30,)
+    subtitle_font = pygame.font.Font(f"{default_font_path}/TimesNewRomanBold.ttf", 25,)
+    notification_font = pygame.font.Font(f"{default_font_path}/Arial.ttf", 20,)
+    small_font = pygame.font.Font(f"{default_font_path}/Arial.ttf", 15)
 
 
 # All the button styles

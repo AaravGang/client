@@ -3,7 +3,7 @@ import pygame
 from button import Button
 from animated_backgrounds import FireworksWindow, FloatersWindow
 import random
-import pyperclip, json
+import pyperclip, json, time
 import numpy as np
 
 # print(pygame.__version__)  # has to be 2.0.0.dev8
@@ -35,7 +35,7 @@ class UserButton:
         self.w, self.h = w, h
         self.on_click = on_click
         self.color = color
-        self.rect = (x, y, w, h)
+        self.rect = pygame.Rect((x, y, w, h))
         self.username = text
         self.image = pygame.surfarray.make_surface(image) if image is not None else None
 
@@ -71,11 +71,31 @@ class UserButton:
 
     def update(self, changed: dict):
         self.__dict__.update(changed)
-
+        self.rect = pygame.Rect(self.rect)
         if self.image:
             self.image = pygame.transform.scale(self.image, (int(self.w), int(self.h)))
-            avg_color_per_row = np.average(pygame.surfarray.array3d(self.image), axis=0)
-            self.avg_color = np.round(np.average(avg_color_per_row, axis=0))
+
+            text_rect = (
+                self.button_style["font"]
+                .render(self.username, True, Colors.BLACK)
+                .get_rect(center=self.rect.center)
+            )
+
+            arr = pygame.surfarray.array3d(self.image)[
+                int(text_rect.x - self.rect.x) : int(
+                    text_rect.x - self.rect.x + text_rect.width,
+                ),
+                int(text_rect.y - self.rect.y) : int(
+                    text_rect.y - self.rect.y + text_rect.height
+                ),
+            ]
+
+            avg_color_per_row = np.average(arr, axis=0,)
+
+            self.avg_color = np.round(np.average(avg_color_per_row, axis=0)).astype(
+                np.int64
+            )
+
             self.text_color = [
                 255 - c for c in self.avg_color
             ]  # create a stand out text color
@@ -589,8 +609,6 @@ class Profile:
             self.username_input.draw(win)
             self.image_path_input.draw(win)
 
-        
-
     def disable_challenge_buttons(self):
         for button in self.buttons["buttons"]:
             button.disable()
@@ -654,18 +672,18 @@ class Notification:
         self.color = color
         self.override_color = None
 
-        self.title_font = pygame.font.SysFont("timesnewroman", 30)
-        self.text_font = pygame.font.SysFont("timesnewroman", 25)
+        self.title_font = Fonts.subtitle_font
+        self.text_font = Fonts.small_font
 
-        self.surf = pygame.Surface((self.w, self.h), pygame.SRCALPHA)
-        self.mask = pygame.Surface((self.w, self.h), pygame.SRCALPHA)
+        self.surf = pygame.Surface((self.w, self.h))
+        self.mask = pygame.Surface((self.w, self.h))
         # self.mask.convert_alpha()
         self.mask_color = mask_color
 
         title = self.truncate(title, self.title_font)
         self.title = self.title_font.render(title, False, title_color)
         self.title_rect = self.title.get_rect(
-            center=(self.w / 2, self.title.get_height() + 5)
+            center=(self.w / 2, self.title.get_height() / 2 + 5)
         )
         self.text = None
         if text:
@@ -675,7 +693,7 @@ class Notification:
             self.text_rect = self.text.get_rect(
                 center=(
                     self.w / 2,
-                    self.text.get_height() + self.title.get_height() + 10,
+                    self.text.get_height() / 2 + self.title.get_height() + 10,
                 )
             )
 
@@ -1433,22 +1451,36 @@ class Game_Template:
 
             def on_bg_close(*args, **kwargs):
                 self.show_animated_bg = False
+                Sound_Effects.celebration.stop()
+                if saved_settings["play_music"]:
+                    pygame.mixer.music.unpause()
 
             self.bg_close_button = Close(self.w - 60, 60, on_click=on_bg_close)
             self.bg = random.choice(celebrations)(self.w, self.h, 0, 0, text=text)
 
             self.show_animated_bg = True
 
+            pygame.mixer.music.pause()
+            if saved_settings["sound_effects"]:
+                Sound_Effects.celebration.play()
+
         else:
             text = f"{(self.players[winner_id]['username'][:3]+'...')if len(self.players[winner_id]['username'])>5 else self.players[winner_id]['username']} has won!"
 
             def on_bg_close(*args, **kwargs):
                 self.show_animated_bg = False
+                Sound_Effects.mourn.stop()
+                if saved_settings["play_music"]:
+                    pygame.mixer.music.unpause()
 
             self.bg_close_button = Close(self.w - 60, 60, on_click=on_bg_close)
             self.bg = random.choice(mourns)(self.w, self.h, 0, 0, text="You have Lost!")
 
             self.show_animated_bg = True
+
+            pygame.mixer.music.pause()
+            if saved_settings["sound_effects"]:
+                Sound_Effects.mourn.play()
 
         self.text = Fonts.subtitle_font.render(text, True, Colors.GREEN)
         self.game_over = True
@@ -1602,7 +1634,7 @@ class Text_Input:
 
         if e.type == pygame.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(e.pos):
-                if not self.selected and window_settings["sound_effects"]:
+                if not self.selected and saved_settings["sound_effects"]:
                     Sound_Effects.select.play()
                 self.selected = True
 
@@ -1615,7 +1647,7 @@ class Text_Input:
         if e.type == pygame.KEYDOWN and self.selected:
             if e.key == pygame.K_BACKSPACE or e.key == pygame.K_DELETE:
                 self.text = self.text[:-1]
-                if window_settings["sound_effects"]:
+                if saved_settings["sound_effects"]:
                     Sound_Effects.key_delete.play()
 
             elif e.key == pygame.K_RETURN and self.callback is not None:
@@ -1626,12 +1658,12 @@ class Text_Input:
                 if self.number:
                     if str(e.unicode).isdigit():
                         self.text += e.unicode
-                        if window_settings["sound_effects"]:
+                        if saved_settings["sound_effects"]:
                             Sound_Effects.key_add.play()
 
                 else:
                     self.text += e.unicode
-                    if window_settings["sound_effects"]:
+                    if saved_settings["sound_effects"]:
                         Sound_Effects.key_add.play()
 
     def check_hover(self):
@@ -1708,10 +1740,10 @@ class Settings_Page:
 
     def update_saved_settings(self):
         with open("saved_settings.json", "w") as f:
-            json.dump(window_settings, f)
+            json.dump(saved_settings, f)
 
     def update_mute_music_button(self):
-        if window_settings["play_music"]:
+        if saved_settings["play_music"]:
             self.mute_music_button.function = self.mute_music
             self.mute_music_button.color = Colors.BLUE
             self.mute_music_button.image = pygame.transform.scale(
@@ -1739,7 +1771,7 @@ class Settings_Page:
             )
 
     def update_mute_sound_effects_button(self):
-        if window_settings["sound_effects"]:
+        if saved_settings["sound_effects"]:
             self.mute_sound_effects_button.function = self.mute_sound_effects
             self.mute_sound_effects_button.color = Colors.BLUE
             self.mute_sound_effects_button.image = pygame.transform.scale(
@@ -1767,25 +1799,25 @@ class Settings_Page:
             )
 
     def mute_music(self, *args, **kwargs):
-        window_settings["play_music"] = False
+        saved_settings["play_music"] = False
         self.update_saved_settings()
         mixer.music.stop()
         self.update_mute_music_button()
 
     def unmute_music(self, *args, **kwargs):
-        window_settings["play_music"] = True
+        saved_settings["play_music"] = True
         self.update_saved_settings()
         mixer.music.play(-1)
 
         self.update_mute_music_button()
 
     def mute_sound_effects(self, *args, **kwargs):
-        window_settings["sound_effects"] = False
+        saved_settings["sound_effects"] = False
         self.update_saved_settings()
         self.update_mute_sound_effects_button()
 
     def unmute_sound_effects(self, *args, **kwargs):
-        window_settings["sound_effects"] = True
+        saved_settings["sound_effects"] = True
         self.update_saved_settings()
         self.update_mute_sound_effects_button()
 
@@ -1800,4 +1832,3 @@ class Settings_Page:
             button.update(self.surf)
 
         win.blit(self.surf, (self.x, self.y))
-
