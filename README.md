@@ -26,7 +26,7 @@ This will install the dependencies required to play the game. **Use only `python
 
 ### Run the `client.py` file by:
 
-`python3 client.py` on mac
+```python3 client.py``` on mac
 OR
 `python client.py` on windows
 
