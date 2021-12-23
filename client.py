@@ -50,6 +50,7 @@ def start_up_window():
         **Button_Styles.CHALLENGE_BUTTON_STYLE,
     )
     while not details:
+        clock.tick(fps)
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 pygame.quit()
@@ -57,6 +58,11 @@ def start_up_window():
             server_ip_input.check_event(e)
             server_port_input.check_event(e)
             details = connect_button.check_event(e)
+
+        keys = pygame.key.get_pressed()
+        server_ip_input.check_keys(keys)
+        server_port_input.check_keys(keys)
+
         server_ip_input.draw(WINDOW)
         server_port_input.draw(WINDOW)
         connect_button.update(WINDOW)
@@ -66,7 +72,7 @@ def start_up_window():
 
 # connect to the server
 def connect(error=None):
-    WINDOW.fill((0, 0, 0))
+    WINDOW.fill(Colors.BLACK)
     pygame.display.update()
     if error:
         write(WINDOW, error, WIDTH / 2, 100, color=Colors.RED)
@@ -75,7 +81,7 @@ def connect(error=None):
 
     ip, port = start_up_window()
     if not str(port).isnumeric():
-        WINDOW.fill((0, 0, 0))
+        WINDOW.fill(Colors.BLACK)
         return connect(error="Port must be a valid number.")
     n = Network(ip, int(port))  # initialise a network
     data = n.connect()  # connect to the server
@@ -83,7 +89,7 @@ def connect(error=None):
         curr_user_id = data
         return n, curr_user_id
     else:
-        WINDOW.fill((0, 0, 0))
+        WINDOW.fill(Colors.BLACK)
         return connect(
             error="Could not connect. Please check if the IP and Port are correct."
         )
@@ -91,7 +97,7 @@ def connect(error=None):
 
 # recieve the list of active users from the server
 def recieve_active_users():
-    WINDOW.fill((0, 0, 0))
+    WINDOW.fill(Colors.BLACK)
     write(WINDOW, f"Recieving other users from server. - {0}%", WIDTH / 2, HEIGHT / 2)
 
     try:
@@ -114,7 +120,7 @@ def recieve_active_users():
                 break
             full_bytes += bytes_chunck
 
-            WINDOW.fill((0, 0, 0))
+            WINDOW.fill(Colors.BLACK)
             write(
                 WINDOW,
                 f"Recieving other users from server. - {round(len(full_bytes)/size * 100)}%",
@@ -131,9 +137,9 @@ def recieve_active_users():
 
     except Exception as e:
         global run
-        print("COULD NOT GET ACTIVE USRERS FROM SERVER.",e)
-        print("DATA RECIEVED WAS: ",data)
-        run  = False
+        print("COULD NOT GET ACTIVE USRERS FROM SERVER.", e)
+        print("DATA RECIEVED WAS: ", data)
+        run = False
 
 
 # move b/w pages
@@ -256,7 +262,7 @@ def send_update_details_request(changed, *args, **kwargs):
 
 # send an image in batches
 def send_image(img):
-    WINDOW.fill((0, 0, 0))
+    WINDOW.fill(Colors.BLACK)
     write(WINDOW, f"Uploading Image - {0}%", WIDTH / 2, HEIGHT / 2)
 
     image_bytes = img.tobytes()
@@ -279,7 +285,7 @@ def send_image(img):
         for batch in range(0, size, 2048):
             check_quit()
             send(image_bytes[batch : batch + 2048], pickle_data=False)
-            WINDOW.fill((0, 0, 0))
+            WINDOW.fill(Colors.BLACK)
             write(
                 WINDOW,
                 f"Uploading Image - {round((batch+2048)/size * 100)}%",
@@ -353,7 +359,7 @@ def update_user(id, changed):
     for key in changed:
         if id == curr_user_id:
             curr_user[key] = changed[key]
-           
+
         active_users[id][key] = changed[key]
 
     user_buttons.update_button(id, changed)
@@ -530,7 +536,6 @@ def recieve():
         if data.get("updated"):
             update_user(data["updated"]["user_id"], data["updated"]["changed"])
 
-        
         if saved_settings["sound_effects"] and sound_to_play:
             sound_to_play.play()
 
@@ -578,7 +583,7 @@ def setup(error=None):
             "COULD NOT CONNECT TO SERVER. PLEASE MAKE SURE YOU ARE CONNECTING TO THE RIGHT IP ADDRESS AND PORT, AND THAT YOU INTERNET IS WORKING."
         )
 
-    WINDOW.fill((0, 0, 0))
+    WINDOW.fill(Colors.BLACK)
     pygame.display.update()
 
     active_users = recieve_active_users()  # load all the users
@@ -635,7 +640,7 @@ def main():
     # recieve data from the server in a seperate thread
     start_new_thread(recieve, ())
 
-    WINDOW.fill((0, 0, 0))
+    WINDOW.fill(Colors.BLACK)
     pygame.display.update()
 
     if saved_settings["play_music"]:
@@ -656,6 +661,7 @@ def main():
 
             elif displays[current_display] == "user_profile":
                 active_profile.check_event(e)
+
             elif displays[current_display] == "game":
                 active_game.check_event(e)
 
@@ -667,6 +673,9 @@ def main():
                 popup_container.check_event(e)
 
             navigation_buttons.check_event(e, current_display, displays)
+
+        if displays[current_display] == "user_profile":
+            active_profile.check_keys(pygame.key.get_pressed())
 
         draw(WINDOW_LEFT, WINDOW_RIGHT, user_buttons)
 

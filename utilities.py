@@ -625,6 +625,10 @@ class Profile:
             self.username_input.check_event(e)
             self.image_path_input.check_event(e)
 
+    def check_keys(self, keys):
+        self.username_input.check_keys(keys)
+        self.image_path_input.check_keys(keys)
+
     def update(self, changed):
         if changed.get("username"):
             if self.curr_user:
@@ -1628,7 +1632,16 @@ class Text_Input:
     def clear(self):
         self.text = ""
 
+    def check_keys(self, keys):
+        if keys[pygame.K_DELETE] or keys[pygame.K_BACKSPACE]:
+            if len(self.text) > 0:
+                self.text = self.text[:-1]
+                if saved_settings["sound_effects"]:
+                    Sound_Effects.key_delete.stop()
+                    Sound_Effects.key_delete.play()
+
     def check_event(self, e):
+
         self.check_hover()
         self.clear_button.check_event(e)
 
@@ -1643,27 +1656,40 @@ class Text_Input:
             # 3 is right click
             if e.button == 3 and self.selected:
                 self.text += pyperclip.paste()
+                if saved_settings["sound_effects"]:
+                    Sound_Effects.key_add.stop()
+                    Sound_Effects.key_add.play()
 
         if e.type == pygame.KEYDOWN and self.selected:
-            if e.key == pygame.K_BACKSPACE or e.key == pygame.K_DELETE:
-                self.text = self.text[:-1]
-                if saved_settings["sound_effects"]:
-                    Sound_Effects.key_delete.play()
 
-            elif e.key == pygame.K_RETURN and self.callback is not None:
+            # callback on enter
+            if e.key == pygame.K_RETURN and self.callback is not None:
                 self.selected = False
                 self.callback(self.text)
+                if saved_settings["sound_effects"]:
+                    Sound_Effects.key_add.stop()
+                    Sound_Effects.key_add.play()
 
+            # paste
+            elif e.key == pygame.K_v and (pygame.key.get_mods() & pygame.KMOD_CTRL):
+                self.text += pyperclip.paste()
+                if saved_settings["sound_effects"]:
+                    Sound_Effects.key_add.stop()
+                    Sound_Effects.key_add.play()
+
+            # write
             else:
                 if self.number:
                     if str(e.unicode).isdigit():
                         self.text += e.unicode
                         if saved_settings["sound_effects"]:
+                            Sound_Effects.key_add.stop()
                             Sound_Effects.key_add.play()
 
                 else:
                     self.text += e.unicode
                     if saved_settings["sound_effects"]:
+                        Sound_Effects.key_add.stop()
                         Sound_Effects.key_add.play()
 
     def check_hover(self):
