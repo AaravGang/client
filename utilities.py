@@ -626,8 +626,9 @@ class Profile:
             self.image_path_input.check_event(e)
 
     def check_keys(self, keys):
-        self.username_input.check_keys(keys)
-        self.image_path_input.check_keys(keys)
+        if self.curr_user:
+            self.username_input.check_keys(keys)
+            self.image_path_input.check_keys(keys)
 
     def update(self, changed):
         if changed.get("username"):
