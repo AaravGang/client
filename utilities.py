@@ -1,7 +1,7 @@
 from constants import *
 import pygame
 from button import Button
-from animated_backgrounds import FireworksWindow, FloatersWindow
+from animated_backgrounds import *
 import random
 import pyperclip, json, time
 import numpy as np
@@ -9,8 +9,8 @@ import numpy as np
 # print(pygame.__version__)  # has to be 2.0.0.dev8
 # pygame.init()
 
-celebrations = [FireworksWindow]
-mourns = [FloatersWindow]
+celebrations = [FireworksWindow, Fluid]
+mourns = [FloatersWindow, BouncingText]
 
 # the user button displayed on home screen
 class UserButton:
@@ -1507,6 +1507,7 @@ class Game_Template:
 
         if self.show_animated_bg:
             self.bg_close_button.check_event(e)
+            self.bg.check_event(e)
 
 
 # previous, next and home buttons
