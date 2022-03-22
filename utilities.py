@@ -1643,7 +1643,7 @@ class Text_Input:
         self.text = ""
 
     def check_keys(self, keys):
-        if keys[pygame.K_DELETE] or keys[pygame.K_BACKSPACE]:
+        if (keys[pygame.K_DELETE] or keys[pygame.K_BACKSPACE]) and self.selected:
             if len(self.text) > 0:
                 self.text = self.text[:-1]
                 if saved_settings["sound_effects"]:
