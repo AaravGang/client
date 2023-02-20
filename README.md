@@ -14,17 +14,23 @@
 **For Mac/Linux users**
 
 ```
-cd <path to download>
-python3 -m pip install -r requirements.txt
-python3 client.py
+python3 -m pip install virtualenv
+virtualenv venv
+soruce venv/bin/activate
+pip install -r requirements.txt
+python client.py
+
 ```
 
 **For Windows**
 
 ```
-cd <path to download>
+python -m pip install virtualenv
+virtualenv venv
+venv\Scripts\activate.bat
 python -m pip install -r requirements.txt
 python client.py
+
 ```
 
 ### Connect to the server
