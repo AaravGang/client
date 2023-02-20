@@ -16,7 +16,7 @@
 ```
 python3 -m pip install virtualenv
 virtualenv venv
-soruce venv/bin/activate
+source venv/bin/activate
 pip install -r requirements.txt
 python client.py
 
