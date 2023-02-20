@@ -6,6 +6,8 @@ from constants import *
 from utilities import *
 from _thread import start_new_thread
 
+pygame.display.set_caption("Sluggy Game Center")
+
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 # two parts of the window - left and right
 WINDOW_LEFT = pygame.Surface((LEFT_WIDTH, HEIGHT))
