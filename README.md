@@ -8,6 +8,7 @@
 ## Setup
 
 > Download this folder and unzip
+
 > Next open terminal and follow these commands
 
 **For Mac/Linux users**
